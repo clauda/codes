@@ -13,7 +13,7 @@ email: krawdyah@gmail.com
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://krawdyah.github.io
+url: http://krawdyah.github.io/codes
 root: /codes
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -77,5 +77,6 @@ sitemap:
 # Deployment
 ## Docs: http://hexo.io/docs/deployment.html
 deploy:
-  type: github
+  type: git
   repo: https://github.com/krawdyah/codes.git
+  branch: gh-pages
