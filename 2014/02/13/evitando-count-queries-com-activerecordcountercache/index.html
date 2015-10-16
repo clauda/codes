@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>Evitando COUNT(*) queries com ActiveRecord::CounterCache | Keep Coding</title>
+  <meta name="description" content="" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="/codes/css/screen.css" type="text/css">
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+
+  <meta name="generator" content="Keep Coding">
+
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  
+  
+
+  
+</head>
+
+
+<body class="post-template">
+
+  <header class="site-head"  style="background-image: url(/codes/img/cover.png)" >
+  <div class="vertical">
+    <div class="site-head-content inner">
+      
+      
+
+      <h1 class="blog-title"><a href="/">Keep Coding</a></h1>
+      <h2 class="blog-description"></h2>
+    </div>
+  </div>
+</header>
+  
+
+<main class="content" role="main">
+  <article class="post">
+    <span class="post-meta">
+  <time datetime="2014-02-13T23:17:00.000Z" itemprop="datePublished">
+    13 Fevereiro 2014
+  </time>
+  
+  
+  | 
+  <a href='/codes/tags/active-record/'>active record</a>,
+  
+  <a href='/codes/tags/cache/'>cache</a>,
+  
+  <a href='/codes/tags/counter-cache/'>counter_cache</a>,
+  
+  <a href='/codes/tags/rails/'>rails</a>,
+  
+  <a href='/codes/tags/ruby/'>ruby</a>
+  
+  
+</span>
+    <h1 class="post-title">Evitando COUNT(*) queries com ActiveRecord::CounterCache</h1>
+    <section class="post-content">
+      <p>Gravar a informação do tamanho de um relacionamento na tabela é até uma solução trivial para evitar consultas com <code>COUNT</code> e o ActiveRecord traz um recurso para esta simples estratégia. Sem questionar o mérito dessa solução, vou me limitar a dizer que podemos economizar ai uns… 10 centavos em queries, alguns <code>SELECT COUNT(*) whatever</code> a menos no log.</p>
+<p>Em associações <code>belongs_to</code> existe a opção <code>:counter_cache</code> trata <a href="http://guides.rubyonrails.org/association_basics.html#counter-cache" target="_blank" rel="external">“pode encontrar o número de objetos pertencentes de forma mais eficiente”</a>, guardando e controlando o número de associações relacionadas. </p>
+<p>Considere a implementação:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Topic</span> <span class="inheritance">&lt; <span class="parent">ActiveRecord::Base</span></span></span>
+
+     belongs_to <span class="symbol">:subject</span>, <span class="symbol">counter_cache:</span> <span class="literal">true</span>
+
+<span class="keyword">end</span>
+</code></pre><p>e</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Subject</span> <span class="inheritance">&lt; <span class="parent">ActiveRecord::Base</span></span></span>
+
+    has_many <span class="symbol">:topics</span>
+
+<span class="keyword">end</span>
+</code></pre><p>O counter cache precisa armazenar o número, assim adicionamos o campo, seguindo a convenção <code>[association]_counter</code>, ao objeto a que ela pertence:</p>
+<pre><code>class <span class="type">AddTopicsCountToSubject</span> &lt; <span class="type">ActiveRecord</span>::<span class="type">Migration</span>
+    def up
+           add_column :subjects, :topics_count, :integer, default: <span class="number">0</span>
+
+        <span class="type">Subject</span>.all.pluck(:id).each <span class="keyword">do</span> |<span class="literal">result</span>|
+              <span class="type">Subject</span>.reset_counters(<span class="literal">result</span>, :topics)
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+      def down
+        remove_column :subjects, :topics_count
+      <span class="keyword">end</span>
+<span class="keyword">end</span>
+</code></pre><p>Quando uma associação é incluída ou removida, o <a href="http://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html" target="_blank" rel="external">ActiveRecord::CounterCache</a> dispara métodos como <code>increment_counter</code> e <code>decrement_counter</code> para atualizar o campo. Na migration, <code>reset_counters</code>, bem.. parece óbvio aqui.</p>
+<p>No console conseguimos notar uma sutil melhora de performance na chamada do método <code>.size</code> (o método <code>.count</code> sempre executa <code>SELECT COUNT(*)</code>).</p>
+<p>Sem o <code>counter_cache</code>: </p>
+<pre><code>&gt; Subject.first.topics.size
+      Subject Load (<span class="number">0.2</span>ms)  <span class="keyword">SELECT</span> <span class="string">"subjects"</span>.* <span class="keyword">FROM</span> <span class="string">"subjects"</span> <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="string">"subjects"</span>.<span class="string">"id"</span> ASC LIMIT <span class="number">1</span>
+       (<span class="number">2.3</span>ms)  <span class="keyword">SELECT</span> COUNT(*) <span class="keyword">FROM</span> <span class="string">"topics"</span> <span class="keyword">WHERE</span> <span class="string">"topics"</span>.<span class="string">"subject_id"</span> = ?  [[<span class="string">"subject_id"</span>, <span class="number">1</span>]]
+=&gt; <span class="number">9</span>
+</code></pre><p>Com o <code>counter_cache</code> ele consulta diretamente pelo campo:</p>
+<pre><code>Subject.first.topics.size
+      Subject <span class="operator"><span class="keyword">Load</span> (<span class="number">0.1</span>ms)  <span class="keyword">SELECT</span> <span class="string">"subjects"</span>.* <span class="keyword">FROM</span> <span class="string">"subjects"</span> <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="string">"subjects"</span>.<span class="string">"id"</span> <span class="keyword">ASC</span> <span class="keyword">LIMIT</span> <span class="number">1</span>
+=&gt; <span class="number">9</span></span>
+</code></pre><p>Quando precisamos contar o número de vários relacionamentos, essas consultas saem bem mais caras que 10 centavos e  toda ajuda aqui é bem vinda.</p>
+
+    </section>
+    <footer class="post-footer">
+      <section class="author">
+  <h4>Claudia Farias</h4>
+  <p>Desenvolvedora</p>
+  
+  
+  
+</section>
+      <section class="share">
+    <h4>Compartilhar</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://krawdyah.github.io/codes/2014/02/13/evitando-count-queries-com-activerecordcountercache/"
+       onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://krawdyah.github.io/codes/2014/02/13/evitando-count-queries-com-activerecordcountercache/"
+       onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://krawdyah.github.io/codes/2014/02/13/evitando-count-queries-com-activerecordcountercache/"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+    </footer>
+  </article>
+  <nav class="pagination" role="pagination">
+    
+    <span class="page-number">•</span>
+    
+    <a class="older-posts" href="/codes/2013/11/06/sample-blog-with-nodejs-and-emberjs/">
+        Sample Blog with NodeJS and EmberJS →
+    </a>
+    
+</nav>
+  <div id="comment" class="comments-area">
+    <h1 class="title"><a href="#disqus_comments" name="disqus_comments"></a></h1>
+
+    
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+    
+</div>
+</main>
+
+
+  
+<footer class="site-footer">
+  
+  <div class="inner">
+    <section><a href="http://krawdyah.com/" title="Claudia Farias">Claudia Farias</a></section>
+    <section class="copyright">Here be Dragons <a href="/codes/">Keep Coding</a> &copy; 2014 &bull; All rights reserved.</section>
+  </div>
+</footer>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+<script type="text/javascript" src="/codes/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/codes/js/index.js"></script>
+
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-2347706-18', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+
+
+<script type="text/javascript">
+    var disqus_shortname = 'krawdyah-scriptogram';
+
+    (function(){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+</body>
+</html>

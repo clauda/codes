@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>Turbolinks do Rails 4 | Keep Coding</title>
+  <meta name="description" content="" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="/codes/css/screen.css" type="text/css">
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+
+  <meta name="generator" content="Keep Coding">
+
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  
+  
+
+  
+</head>
+
+
+<body class="post-template">
+
+  <header class="site-head"  style="background-image: url(/codes/img/cover.png)" >
+  <div class="vertical">
+    <div class="site-head-content inner">
+      
+      
+
+      <h1 class="blog-title"><a href="/">Keep Coding</a></h1>
+      <h2 class="blog-description"></h2>
+    </div>
+  </div>
+</header>
+  
+
+<main class="content" role="main">
+  <article class="post">
+    <span class="post-meta">
+  <time datetime="2012-11-28T14:31:00.000Z" itemprop="datePublished">
+    28 Novembro 2012
+  </time>
+  
+  
+  | 
+  <a href='/codes/tags/rails/'>rails</a>
+  
+  
+</span>
+    <h1 class="post-title">Turbolinks do Rails 4</h1>
+    <section class="post-content">
+      <p><a href="https://github.com/rails/turbolinks" target="_blank" rel="external">Turbolinks</a> é um nome sugestivo, novidade que será integrado ao Rails 4, não vou explicar a p* toda.</p>
+<p>Ele faz a requisição de forma assíncrona e carrega o conteúdo apenas do corpo (body), ao invés da página inteira, e isso tudo sem jQuery ou nada além que poucas linhas de js. </p>
+<p>Uma vez na sua aplicação todos os links irão seguir o comportamento do Turbolinks por padrão. Para ‘desabilitá-lo’ do link basta adicionar um atributo chamado de  <code>data-no-turbolink</code> setado para  <code>true</code> à sua âncora. </p>
+<p>Ele usa um recurso chamado pushState para alterar a URL e simular um click normal e tem outros recursos interessantes como eventos de página.</p>
+<p>Isso me lembrou o velho PrototypeHelper do rails 2.3, o <code>update_html</code>, <code>remote_function</code>, aqueles <code>page.call</code>, <code>page.insert_html</code>, uma seboseira, mas escutei muito choro de dev.</p>
+<p>Pro do Turbolinks: carregar conteúdo duas a três vezes mais rápido.<br>Contra: o navegador precisa dar suporte ao recurso.</p>
+<p>Mais…<br><br><a href="http://railscasts.com/episodes/390-turbolinks" target="_blank" rel="external">Railscast #390</a><br><br><a href="http://blog.teamtreehouse.com/rails-4-a-look-at-turbolinks" target="_blank" rel="external">Rails 4: A Look at Turbolinks</a></p>
+
+    </section>
+    <footer class="post-footer">
+      <section class="author">
+  <h4>Claudia Farias</h4>
+  <p>Desenvolvedora</p>
+  
+  
+  
+</section>
+      <section class="share">
+    <h4>Compartilhar</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://krawdyah.github.io/codes/2012/11/28/turbolinks-do-rails-4/"
+       onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://krawdyah.github.io/codes/2012/11/28/turbolinks-do-rails-4/"
+       onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://krawdyah.github.io/codes/2012/11/28/turbolinks-do-rails-4/"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+    </footer>
+  </article>
+  <nav class="pagination" role="pagination">
+    
+    <a class="newer-posts" href="/codes/2013/01/04/rails-diaadia-2/">
+        ← Rails Dia-a-Dia
+    </a>
+    
+    <span class="page-number">•</span>
+    
+    <a class="older-posts" href="/codes/2012/11/08/rails-diaadia-1/">
+        Rails Dia-a-Dia →
+    </a>
+    
+</nav>
+  <div id="comment" class="comments-area">
+    <h1 class="title"><a href="#disqus_comments" name="disqus_comments"></a></h1>
+
+    
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+    
+</div>
+</main>
+
+
+  
+<footer class="site-footer">
+  
+  <div class="inner">
+    <section><a href="http://krawdyah.com/" title="Claudia Farias">Claudia Farias</a></section>
+    <section class="copyright">Here be Dragons <a href="/codes/">Keep Coding</a> &copy; 2014 &bull; All rights reserved.</section>
+  </div>
+</footer>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+<script type="text/javascript" src="/codes/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/codes/js/index.js"></script>
+
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-2347706-18', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+
+
+<script type="text/javascript">
+    var disqus_shortname = 'krawdyah-scriptogram';
+
+    (function(){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+</body>
+</html>

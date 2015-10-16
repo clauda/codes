@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>Rails e Concerns | Keep Coding</title>
+  <meta name="description" content="" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="/codes/css/screen.css" type="text/css">
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+
+  <meta name="generator" content="Keep Coding">
+
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  
+  
+
+  
+</head>
+
+
+<body class="post-template">
+
+  <header class="site-head"  style="background-image: url(/codes/img/cover.png)" >
+  <div class="vertical">
+    <div class="site-head-content inner">
+      
+      
+
+      <h1 class="blog-title"><a href="/">Keep Coding</a></h1>
+      <h2 class="blog-description"></h2>
+    </div>
+  </div>
+</header>
+  
+
+<main class="content" role="main">
+  <article class="post">
+    <span class="post-meta">
+  <time datetime="2013-06-06T15:00:00.000Z" itemprop="datePublished">
+    6 Junho 2013
+  </time>
+  
+  
+  | 
+  <a href='/codes/tags/rails/'>rails</a>
+  
+  
+</span>
+    <h1 class="post-title">Rails e Concerns</h1>
+    <section class="post-content">
+      <p>Acontece o tempo todo. </p>
+<p>Grandes projetos podem também trazer grandes dores de cabeça. A cada sprint de desenvolvimento, as ideias vão mudando e alterando o código, decisões são revertidas, você descobre algo que não havia previsto ou outra coisa que não era bem como você estava pensando. Ok. Nesse cenário nosso código adquire complexidades difíceis de manter, mesmo com uma boa cobertura de testes. Eu queria ter certeza de que estamos nos valendo de todas os recursos disponíveis para melhorar nosso código nesse sentido, deixando-o mais reusável, redondo e sem brechas.</p>
+<h2 id="Concerns">Concerns</h2><p>A primeira intenção do Concern é remover duplicidade de código, e junto a isso, ele nos inclina a separar lógica e dados e qualquer dependência que esteja fora do domínio ou que não seja de responsabilidade dos modelos. Concerns podem ser implementados para modelos e controlers (<code>app/models/concerns</code> e <code>app/controllers/concerns</code>). No Rails 3 precisamos criar os diretórios, então incluí-los no <code>application.rb</code> para serem carregados. No Rails 4, isso será padrão e nenhuma configuração precisará ser feita.</p>
+<pre><code>config.autoload_paths += <span class="variable">%W</span>(<span class="comment">#{config.root}/app/models/concerns)</span>
+</code></pre><p>Implementamos um Concern criando um módulo que estende <code>ActiveSupport::Concern</code>. Colocando a responsabilidade em um Concern, desacoplamos um trecho de código que pode ser reutilizado em outros modelos. Podemos adicionar métodos de classe ao modelo adicionando-os no módulo <code>ClassMethods</code>, e tudo dentro do bloco <code>included</code> será incluído na classe que a utiliza também. Removemos o código duplicado e adicionamos a um Concern com esta estrutura:</p>
+<pre><code><span class="class"><span class="keyword">module</span> <span class="title">OptimusPrime</span></span>
+    <span class="keyword">extend</span> <span class="constant">ActiveSupport::Concern</span>
+
+    included <span class="keyword">do</span>
+        <span class="comment"># validates, scopes, relations, etc</span>
+        <span class="comment"># tudo dentro deste bloco será incluído a classe</span>
+    <span class="keyword">end</span>
+
+    <span class="class"><span class="keyword">module</span> <span class="title">ClassMethod</span></span>
+        <span class="comment"># metodos de classe</span>
+    <span class="keyword">end</span>
+
+    <span class="comment"># outros metodos</span>
+<span class="keyword">end</span>
+</code></pre><p>Feito isto, um <code>include</code> do Concern nas classes resolvem nosso problema com o DRY.</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">class</span> <span class="title">User</span> <span class="inheritance">&lt; <span class="parent">ActiveRecord::Base</span></span></span>
+    <span class="keyword">include</span> <span class="constant">OptimusPrime</span>
+    ...
+<span class="keyword">end</span>
+</code></pre><h4 id="Here_Be_Dragons">Here Be Dragons</h4><p><br><br>O uso de Concern as vezes é criticado porque um outra abordagem é tentar fazer  ‘remendos’ com implementações específicas para um domínio, onde os concerns poderiam ficar em <code>app/models/{any}/optimus_prime.rb</code>, por exemplo. Esse tipo de implementação tem um risco: pode não passar de uma maquiagem no seu código. Mas ainda para esse disfarce funcionar, você precisa se certificar que está extraindo métodos que fazem sentido estar em um Concern e que façam sentido entre sí, que pertençam ao mesmo domínio. Extrair código para um outro arquivo também é bem chato de manter, mas torna seu código um pouco melhor. </p>
+<p>O Bryan do CodeClimate, acredita que Concerns deixam a aplicação gorda, mas gordura de código é aquele trecho legado, em desuso ou que ficou depreciado e precisa ser queimado. Concerns são reusáveis, e estão no Rails para serem usados, e quando bem aplicados, até emagrece. </p>
+<p>O Ryan (RailsCast) também não é muito fã de módulos em geral e listou os contras em um <a href="https://gist.github.com/ryanb/4172391" target="_blank" rel="external">gist</a>. São pontos interessantes discutíveis.</p>
+<p>Achei que ia conseguir entrar em Service Objects, mas fica para o próximo post.</p>
+<p><strong>Referências</strong><br><br> <a href="http://37signals.com/svn/posts/3372-put-chubby-models-on-a-diet-with-concerns" target="_blank" rel="external">http://37signals.com/svn/posts/3372-put-chubby-models-on-a-diet-with-concerns</a><br><br><a href="http://api.rubyonrails.org/classes/ActiveSupport/Concern.html" target="_blank" rel="external">http://api.rubyonrails.org/classes/ActiveSupport/Concern.html</a><br><br> <a href="http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/" target="_blank" rel="external">http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/</a><br><br><a href="http://joshsymonds.com/blog/2012/07/01/rails-concerns-i-starting-with-redcarpet/" target="_blank" rel="external">http://joshsymonds.com/blog/2012/07/01/rails-concerns-i-starting-with-redcarpet/</a></p>
+
+    </section>
+    <footer class="post-footer">
+      <section class="author">
+  <h4>Claudia Farias</h4>
+  <p>Desenvolvedora</p>
+  
+  
+  
+</section>
+      <section class="share">
+    <h4>Compartilhar</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://krawdyah.github.io/codes/2013/06/06/rails-services-concerns/"
+       onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://krawdyah.github.io/codes/2013/06/06/rails-services-concerns/"
+       onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://krawdyah.github.io/codes/2013/06/06/rails-services-concerns/"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+    </footer>
+  </article>
+  <nav class="pagination" role="pagination">
+    
+    <a class="newer-posts" href="/codes/2013/06/13/fragmento-1-o-codificador-limpo/">
+        ← [Fragmento #1] O Codificador Limpo
+    </a>
+    
+    <span class="page-number">•</span>
+    
+    <a class="older-posts" href="/codes/2013/04/19/genghisapp/">
+        GenghisApp →
+    </a>
+    
+</nav>
+  <div id="comment" class="comments-area">
+    <h1 class="title"><a href="#disqus_comments" name="disqus_comments"></a></h1>
+
+    
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+    
+</div>
+</main>
+
+
+  
+<footer class="site-footer">
+  
+  <div class="inner">
+    <section><a href="http://krawdyah.com/" title="Claudia Farias">Claudia Farias</a></section>
+    <section class="copyright">Here be Dragons <a href="/codes/">Keep Coding</a> &copy; 2014 &bull; All rights reserved.</section>
+  </div>
+</footer>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+<script type="text/javascript" src="/codes/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/codes/js/index.js"></script>
+
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-2347706-18', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+
+
+<script type="text/javascript">
+    var disqus_shortname = 'krawdyah-scriptogram';
+
+    (function(){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+</body>
+</html>
