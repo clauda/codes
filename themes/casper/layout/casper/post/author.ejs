@@ -1,0 +1,11 @@
+<section class="author">
+  <h4><%- post.author || config.author %></h4>
+  <p><%- post.bio || theme.bio %></p>
+  <% if(post.github) { %>
+    <a href='<%- post.github %>' title='GitHub Profile'><img src='/dev-ra/img/github.png'></a>
+  <% } %>
+  
+  <% if(post.twitter) { %>
+    <a href='<%- post.twitter %>' title='Twitter Profile'><img src='/dev-ra/img/twitter.png'></a>
+  <% } %>
+</section>

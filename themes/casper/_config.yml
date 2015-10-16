@@ -1,0 +1,11 @@
+# config
+cover: /codes/img/cover.png
+icon: /codes/img/icon.png
+bio: 'Desenvolvedora'
+
+# Content
+excerpt_link: Continue lendo
+
+# Miscellaneous
+rss:
+google_analytics: UA-2347706-18
